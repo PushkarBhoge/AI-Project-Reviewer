@@ -1,0 +1,37 @@
+{
+  "name": "ai-project-reviewer-api",
+  "version": "1.0.0",
+  "description": "Backend API for GitHub AI Project Reviewer",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@octokit/rest": "^22.0.1",
+    "adm-zip": "^0.5.18",
+    "axios": "^1.18.1",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.1",
+    "morgan": "^1.10.0",
+    "pdfkit": "^0.19.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "eslint": "^9.33.0",
+    "globals": "^16.3.0",
+    "nodemon": "^3.1.0"
+  }
+}
