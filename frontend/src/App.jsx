@@ -12,6 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import ProjectDetail from "@/pages/ProjectDetail";
 import ReviewDetail from "@/pages/ReviewDetail";
 import History from "@/pages/History";
+import Billing from "@/pages/Billing";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/reviews/:id" element={<ReviewDetail />} />
           <Route path="/history" element={<History />} />
+          <Route path="/billing" element={<Billing />} />
         </Route>
       </Route>
 

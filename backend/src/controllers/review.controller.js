@@ -1,5 +1,6 @@
 import Review from "../models/review.model.js";
 import Project from "../models/project.model.js";
+import User from "../models/user.model.js";
 import { runReviewPipeline } from "../services/review.pipeline.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -24,12 +25,22 @@ export const createReview = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Project not found");
   }
 
+  // 1.5. Check user tokens
+  const user = await User.findById(req.user._id);
+  if (!user || user.tokens <= 0) {
+    throw new ApiError(402, "Insufficient tokens. Please purchase more tokens to audit repositories.");
+  }
+
   // 2. Check if a review is already running
   if (project.status === "reviewing") {
     return ApiResponse.success(res, 200, "Review is already in progress for this repository", {
       status: "reviewing",
     });
   }
+
+  // 2.5. Deduct token and save user
+  user.tokens -= 1;
+  await user.save();
 
   // 3. Start review pipeline asynchronously in background
   runReviewPipeline(projectId, req.user._id).catch((err) => {

@@ -18,11 +18,12 @@ export class AIService {
    * @param {Object} parserResult Structural findings from ParserService.
    * @param {Array} fileContents Array of { path, content } containing code content.
    */
-  async analyzeProject(scanResult, parserResult, fileContents) {
-    try {
-      logger.info("Initializing Gemini AI analysis...");
-      const model = this.genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+  async analyzeProject(scanResult, parserResult, fileContents, maxRetries = 2) {
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+      try {
+        logger.info(`Initializing Gemini AI analysis (Attempt ${attempt})...`);
+        const model = this.genAI.getGenerativeModel({
+          model: "gemini-2.5-flash",
         generationConfig: {
           responseMimeType: "application/json",
         },
@@ -154,10 +155,15 @@ Output Schema:
 
       return this.parseReviewResponse(responseText);
     } catch (error) {
+      if (error.message.includes("Gemini generated an invalid JSON response format") && attempt <= maxRetries) {
+        logger.warn(`JSON Parsing failed, retrying (${attempt}/${maxRetries})...`);
+        continue;
+      }
       logger.error(`Gemini AI Service Error: ${error.message}`);
       throw new ApiError(500, `AI Analysis failed: ${error.message}`);
     }
   }
+}
 
   /**
    * Helper to parse AI response into structured review format.

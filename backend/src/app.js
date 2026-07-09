@@ -13,6 +13,8 @@ import authRoutes from "./routes/auth.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import sseRoutes from "./routes/sse.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
+import { stripeWebhook } from "./controllers/payment.controller.js";
 
 const app = express();
 
@@ -24,6 +26,9 @@ app.use(
     credentials: true,
   })
 );
+// Stripe webhook must be mounted before express.json()
+app.post("/api/v1/payments/webhook", express.raw({ type: "application/json" }), stripeWebhook);
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -49,6 +54,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/projects", projectRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/sse", sseRoutes);
+app.use("/api/v1/payments", paymentRoutes);
 
 // Health check
 app.get("/api/v1/health", (_req, res) => {

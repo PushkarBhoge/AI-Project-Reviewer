@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    tokens: {
+      type: Number,
+      default: 3,
+    },
   },
   {
     timestamps: true,

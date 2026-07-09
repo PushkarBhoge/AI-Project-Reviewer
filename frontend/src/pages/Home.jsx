@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import InteractiveBackground from "@/components/InteractiveBackground";
+import { paymentService } from "@/services/payment.service";
+import toast from "react-hot-toast";
 
 export default function Home() {
   const { user } = useAuth();
@@ -33,22 +36,38 @@ export default function Home() {
 
   const pricingData = [
     {
-      name: "Free",
-      pricing: 0,
-      features: ['Static sites only', '1 website', '500 MB SSD storage', 'Free SSL Certificate', 'Community support', 'No custom domain']
+      id: "starter",
+      name: "Starter Pack",
+      pricing: 99,
+      features: ['5 Repository Audits', 'Full Architecture Scan', 'Security Vulnerability Check', 'Performance Optimization Tips']
     },
     {
-      name: "Pro plan",
-      pricing: 19,
+      id: "pro",
+      name: "Pro Pack",
+      pricing: 299,
       mostPopular: true,
-      features: ['Static & dynamic sites', 'Unlimited websites', '10 GB SSD storage', 'Free SSL Certificate', 'Free custom domain', 'Email support', 'Basic analytics']
+      features: ['20 Repository Audits', 'Full Architecture Scan', 'Security Vulnerability Check', 'Performance Optimization Tips']
     },
     {
-      name: "Enterprise",
-      pricing: 49,
-      features: ['Static & dynamic sites', 'Unlimited websites', 'Unlimited SSD storage', 'Free SSL Certificate', 'Free custom domain', 'Priority 24/7 support']
+      id: "unlimited",
+      name: "Power Pack",
+      pricing: 999,
+      features: ['100 Repository Audits', 'Full Architecture Scan', 'Security Vulnerability Check', 'Performance Optimization Tips']
     }
   ];
+
+  const handlePurchase = async (packageId) => {
+    if (!user) {
+      toast.error("Please log in to purchase tokens");
+      return;
+    }
+    try {
+      const res = await paymentService.createCheckoutSession({ packageId });
+      window.location.href = res.data.data.url;
+    } catch (err) {
+      toast.error("Failed to start checkout");
+    }
+  };
 
   const cardsData = [
     {
@@ -95,10 +114,7 @@ export default function Home() {
 
   return (
     <div className="relative overflow-hidden bg-slate-50 dark:bg-slate-950 min-h-[calc(100vh-64px)] flex flex-col justify-start pt-24 pb-12">
-      {/* Decorative background grid and gradients */}
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
-      <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-purple-500/10 dark:bg-purple-950/20 animate-pulse-glow" />
-      <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-indigo-500/10 dark:bg-indigo-950/20 animate-pulse-glow delay-200" />
+      <InteractiveBackground />
  
       <div className="relative z-10 mx-auto max-w-5xl space-y-16 pb-16">
         {/* Hero Section */}
@@ -271,24 +287,7 @@ export default function Home() {
           No credit card required. Upgrade only when you need more.
         </p>
 
-        <div className="relative p-1 bg-white/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 backdrop-blur rounded-xl inline-flex items-center mb-16 w-64 shadow-sm">
-            <div className={`absolute -z-10 w-[calc(50%-4px)] h-[calc(100%-8px)] rounded-lg bg-purple-600 transition-transform duration-300 ease-in-out
-                ${isYearly ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
-            ></div>
-            <button
-                onClick={() => setIsYearly(false)}
-                className={`relative z-10 flex-1 py-2 cursor-pointer rounded-lg text-sm font-semibold transition-colors duration-300
-                ${!isYearly ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
-                Monthly
-            </button>
-            <button
-                onClick={() => setIsYearly(true)}
-                className={`relative z-10 flex-1 py-2 cursor-pointer rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-colors duration-300
-                ${isYearly ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
-                Yearly
-                <span className='text-[10px] uppercase tracking-wider opacity-90'>15% off</span>
-            </button>
-        </div>
+        {/* Removed Monthly/Yearly Toggle since tokens are one-time purchase */}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full items-end">
             {pricingData.map((plan, index) => (
@@ -308,9 +307,9 @@ export default function Home() {
                     </h3>
                     <div className="flex items-baseline gap-1 mb-8">
                         <span className="text-4xl font-extrabold text-slate-900 dark:text-white">
-                            {isYearly ? `$${plan.pricing - Math.round(plan.pricing * 0.15)}` : `$${plan.pricing}`}
+                            ₹{plan.pricing}
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">/ month</span>
+                        <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">/ one-time</span>
                     </div>
                     
                     <ul className="space-y-4 mb-8 flex-1">
@@ -322,11 +321,13 @@ export default function Home() {
                         ))}
                     </ul>
                     
-                    <button className={`w-full cursor-pointer py-3 rounded-xl font-bold transition-all duration-200 
+                    <button 
+                        onClick={() => handlePurchase(plan.id)}
+                        className={`w-full cursor-pointer py-3 rounded-xl font-bold transition-all duration-200 
                         ${plan.mostPopular 
                             ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/25' 
                             : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white'}`}>
-                        Get Started
+                        Buy Now
                     </button>
                 </div>
             ))}

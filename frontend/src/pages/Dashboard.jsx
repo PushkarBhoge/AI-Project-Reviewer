@@ -5,11 +5,13 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import LanguageBadge from "@/components/ui/LanguageBadge";
 import Select from "@/components/ui/Select";
 import { Plus, Search, GitBranch, Star, Trash2, ShieldAlert, Award, FileText, CheckCircle, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { projectService } from "@/services/project.service";
 import { reviewService } from "@/services/review.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const Dashboard = () => {
   const { data, isLoading, refetch } = useProjects();
@@ -23,8 +25,24 @@ const Dashboard = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { refetchUser } = useAuth();
 
   const projects = data?.data?.projects || [];
+
+  // Check for successful token purchase
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      toast.success("Tokens successfully purchased and added to your account!", { duration: 5000 });
+      searchParams.delete("success");
+      setSearchParams(searchParams, { replace: true });
+      
+      // Delay to allow Stripe webhook to reach the backend and update DB
+      setTimeout(() => {
+        if (refetchUser) refetchUser();
+      }, 2500);
+    }
+  }, [searchParams, setSearchParams, refetchUser]);
 
   // Re-audit project handler
   const handleReauditProject = async (id, e) => {

@@ -59,6 +59,15 @@ export const AuthProvider = ({ children }) => {
     queryClient.clear();
   };
 
+  const refetchUser = async () => {
+    try {
+      const res = await authService.getProfile();
+      setUser(res.data.data.user);
+    } catch (error) {
+      console.error("Failed to refetch user", error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -67,6 +76,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        refetchUser,
       }}
     >
       {children}

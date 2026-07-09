@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Loader2, AlertCircle } from "lucide-react";
+import InteractiveBackground from "@/components/InteractiveBackground";
 
 const Login = () => {
   const { login } = useAuth();
@@ -42,7 +43,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 pt-20">
+    <div className="relative flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 pt-20 overflow-hidden">
+      <InteractiveBackground />
       <form
         onSubmit={handleSubmit}
         noValidate

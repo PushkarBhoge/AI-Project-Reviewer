@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useReviews } from "@/hooks/useReviews";
 import ThemeToggle from "@/components/ThemeToggle";
-import { LayoutDashboard, History, LogOut, Menu, X, Github, User } from "lucide-react";
+import { LayoutDashboard, History, LogOut, Menu, X, Github, User, Coins, CreditCard } from "lucide-react";
 import LanguageBadge from "@/components/ui/LanguageBadge";
 
 const DashboardLayout = () => {
@@ -35,6 +35,7 @@ const DashboardLayout = () => {
   const navLinks = [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { label: "Audit History", path: "/history", icon: History },
+    { label: "Billing & Tokens", path: "/billing", icon: CreditCard },
   ];
 
   const getInitials = (name) => {
@@ -57,10 +58,10 @@ const DashboardLayout = () => {
           isHovered ? "w-64 shadow-xl" : "w-20"
         }`}
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1 overflow-hidden">
           {/* Logo Brand */}
-          <div className={`flex h-16 items-center border-b border-slate-100 dark:border-slate-800 transition-all duration-300 gap-3 ${
-            isHovered ? "px-6" : "justify-center px-0"
+          <div className={`flex h-14 items-center border-b border-slate-100 dark:border-slate-800 transition-all duration-300 gap-3 ${
+            isHovered ? "px-5" : "justify-center px-0"
           }`}>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-white shadow-md shadow-purple-500/20">
               <Github className="h-5 w-5" />
@@ -73,7 +74,7 @@ const DashboardLayout = () => {
           </div>
 
           {/* Navigation links */}
-          <nav className="space-y-2.5 p-4">
+          <nav className="space-y-1.5 p-3">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname === link.path;
@@ -82,8 +83,8 @@ const DashboardLayout = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center rounded-xl py-3 transition-all duration-200 ${
-                    isHovered ? "px-4 gap-3.5 justify-start w-full" : "justify-center px-0 w-12 mx-auto"
+                  className={`flex items-center rounded-xl py-2 transition-all duration-200 ${
+                    isHovered ? "px-4 gap-3.5 justify-start w-full" : "justify-center px-0 w-10 mx-auto"
                   } ${
                     isActive
                       ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
@@ -103,12 +104,12 @@ const DashboardLayout = () => {
 
           {/* Recent Audits list */}
           {isHovered && (
-            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800/60 mt-2 transition-all duration-300">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800/60 mt-1 transition-all duration-300 flex flex-col flex-1 overflow-hidden">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block shrink-0">
                 Recent Audits
               </span>
               {recentReviews.length > 0 ? (
-                <div className="mt-3 space-y-2.5 max-h-[240px] overflow-y-auto">
+                <div className="mt-2 space-y-2 overflow-y-auto scrollbar-hide flex-1 pb-2">
                   {recentReviews.map((rev) => (
                     <Link
                       key={rev._id}
@@ -154,8 +155,8 @@ const DashboardLayout = () => {
         </div>
 
         {/* Footer controls & Profile */}
-        <div className={`border-t border-slate-100 p-4 dark:border-slate-800 transition-all duration-300 ${
-          isHovered ? "space-y-4" : "space-y-2"
+        <div className={`border-t border-slate-100 p-3 dark:border-slate-800 transition-all duration-300 ${
+          isHovered ? "space-y-3" : "space-y-2"
         }`}>
           {/* Theme toggler row */}
           <div className={`flex items-center transition-all ${
@@ -168,34 +169,47 @@ const DashboardLayout = () => {
           </div>
 
           {/* User profile row */}
-          <div className={`flex items-center rounded-xl bg-slate-50 dark:bg-slate-950/40 transition-all ${
-            isHovered ? "p-3 justify-between" : "p-1.5 justify-center w-12 mx-auto"
+          <div className={`flex flex-col gap-2 rounded-xl bg-slate-50 dark:bg-slate-950/40 transition-all ${
+            isHovered ? "p-3" : "p-1.5 justify-center w-12 mx-auto"
           }`}>
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 font-bold text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
-                {getInitials(user?.name)}
-              </div>
-              {isHovered && (
-                <div className="overflow-hidden">
-                  <span className="block truncate text-xs font-bold text-slate-800 dark:text-white">
-                    {user?.name || "Guest"}
-                  </span>
-                  <span className="block truncate text-[10px] text-slate-400">
-                    {user?.email || ""}
-                  </span>
+            <div className={`flex items-center ${isHovered ? "justify-between" : "justify-center"} overflow-hidden`}>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 font-bold text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                  {getInitials(user?.name)}
                 </div>
+                {isHovered && (
+                  <div className="overflow-hidden">
+                    <span className="block truncate text-xs font-bold text-slate-800 dark:text-white">
+                      {user?.name || "Guest"}
+                    </span>
+                    <span className="block truncate text-[10px] text-slate-400">
+                      {user?.email || ""}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Logout button */}
+              {isHovered && (
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-4.5 w-4.5" />
+                </button>
               )}
             </div>
 
-            {/* Logout button */}
+            {/* Token Badge */}
             {isHovered && (
-              <button
-                onClick={handleLogout}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
-                title="Sign Out"
-              >
-                <LogOut className="h-4.5 w-4.5" />
-              </button>
+              <div className="flex items-center justify-between bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-800 mt-1">
+                <div className="flex items-center gap-2">
+                  <Coins className="h-4 w-4 text-amber-500" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Tokens</span>
+                </div>
+                <span className="text-xs font-extrabold text-purple-600 dark:text-purple-400">{user?.tokens ?? 0}</span>
+              </div>
             )}
           </div>
         </div>
