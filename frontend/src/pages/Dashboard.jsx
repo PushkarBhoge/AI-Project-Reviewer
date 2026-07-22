@@ -37,7 +37,7 @@ const Dashboard = () => {
       searchParams.delete("success");
       setSearchParams(searchParams, { replace: true });
       
-      // Delay to allow Stripe webhook to reach the backend and update DB
+      // Delay to allow payment webhook to reach backend and update DB if redirected
       setTimeout(() => {
         if (refetchUser) refetchUser();
       }, 2500);

@@ -20,4 +20,10 @@ export const env = {
 
   // Frontend
   CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
+
+  // Razorpay
+  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
+  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
+  RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
 };
+

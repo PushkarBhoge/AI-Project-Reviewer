@@ -32,12 +32,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !error.config?.url?.includes("/payments")) {
       localStorage.removeItem("token");
       window.location.href = "/login";
     }
     return Promise.reject(error);
   }
 );
+
 
 export default api;

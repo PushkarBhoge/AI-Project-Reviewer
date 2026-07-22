@@ -4,7 +4,7 @@ import { paymentService } from "@/services/payment.service";
 import toast from "react-hot-toast";
 
 export default function Billing() {
-  const { user } = useAuth();
+  const { user, refetchUser } = useAuth();
   const [loadingId, setLoadingId] = useState(null);
 
   const pricingData = [
@@ -32,13 +32,61 @@ export default function Billing() {
   const handlePurchase = async (packageId) => {
     setLoadingId(packageId);
     try {
-      const res = await paymentService.createCheckoutSession({ packageId });
-      window.location.href = res.data.data.url;
+      const res = await paymentService.createOrder({ packageId });
+      const orderData = res.data.data;
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "AI Project Reviewer",
+        description: `Purchase ${orderData.packageName}`,
+        order_id: orderData.orderId,
+        prefill: {
+          name: orderData.userName || "",
+          email: orderData.userEmail || "",
+        },
+        theme: {
+          color: "#9333ea",
+        },
+        handler: async (response) => {
+          try {
+            toast.loading("Verifying payment...", { id: "razorpay-verify" });
+            await paymentService.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              packageId,
+            });
+            toast.success("Tokens purchased successfully!", { id: "razorpay-verify" });
+            if (refetchUser) refetchUser();
+          } catch (verifyErr) {
+            console.error(verifyErr);
+            toast.error("Payment verification failed", { id: "razorpay-verify" });
+          } finally {
+            setLoadingId(null);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setLoadingId(null);
+          },
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.on("payment.failed", function (response) {
+        toast.error(`Payment Failed: ${response.error.description || "Transaction cancelled"}`);
+        setLoadingId(null);
+      });
+      razorpayInstance.open();
     } catch (err) {
-      toast.error("Failed to start checkout");
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to initiate payment");
       setLoadingId(null);
     }
   };
+
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
