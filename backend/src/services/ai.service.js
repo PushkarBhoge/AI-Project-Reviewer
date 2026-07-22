@@ -134,7 +134,10 @@ Output Schema:
       "file": "path/relative/to/repo/file.js",
       "line": 42,
       "severity": "critical", // info, warning, critical
-      "message": "Specific error description and how to fix it"
+      "message": "Specific issue description detailing the code flaw or vulnerability",
+      "solution": "Clear, actionable step-by-step instructions on how to solve this specific issue",
+      "originalCode": "// Problematic code snippet as it currently exists in the repository around line 42\nconst rawData = req.body.data;",
+      "codeSnippet": "// Concise, production-ready code snippet showing how to resolve the issue\nconst rawData = sanitize(req.body.data);"
     }
   ],
   "recommendations": [

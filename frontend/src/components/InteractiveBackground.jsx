@@ -108,7 +108,7 @@ export default function InteractiveBackground() {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
       {/* Grid Pattern */}
       <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
       
@@ -133,7 +133,7 @@ export default function InteractiveBackground() {
         }}
       />
       
-      {/* Floating Blobs (Similar to existing ones) */}
+      {/* Floating Blobs */}
       <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-purple-500/10 dark:bg-purple-950/20 blur-[80px] animate-pulse-glow" />
       <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-indigo-500/10 dark:bg-indigo-950/20 blur-[80px] animate-pulse-glow delay-200" />
     </div>

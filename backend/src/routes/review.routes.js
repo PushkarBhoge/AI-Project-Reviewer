@@ -6,6 +6,7 @@ import {
   downloadReviewPDF,
   getUserReviews,
   getPublicReviews,
+  createSuggestionPR,
 } from "../controllers/review.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
@@ -21,6 +22,7 @@ router.route("/").get(getUserReviews);
 router.post("/:projectId", createReview);
 router.get("/project/:projectId", getReviewsByProject);
 router.get("/:id/pdf", downloadReviewPDF);
+router.post("/:id/suggestions/:suggestionIndex/pr", createSuggestionPR);
 router.get("/:id", getReviewById);
 
 export default router;

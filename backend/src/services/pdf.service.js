@@ -177,12 +177,27 @@ export class PDFService {
         doc.moveDown(0.8);
 
         review.suggestions.forEach((sug) => {
-          const severityColor = sug.severity === "high" ? "#ef4444" : sug.severity === "medium" ? "#f59e0b" : "#64748b";
-          const severityBg = sug.severity === "high" ? "#fef2f2" : sug.severity === "medium" ? "#fffbeb" : "#f8fafc";
-          const severityText = sug.severity.toUpperCase();
+          const isCritical = sug.severity === "critical" || sug.severity === "high";
+          const isWarning = sug.severity === "warning" || sug.severity === "medium";
 
-          const messageHeight = doc.heightOfString(sug.message, { width: 465, lineGap: 1.5 });
-          const cardHeight = 10 + 14 + 8 + messageHeight + 12; // padding top + severity-row + gap + text + padding bottom
+          const severityColor = isCritical ? "#ef4444" : isWarning ? "#f59e0b" : "#64748b";
+          const severityBg = isCritical ? "#fef2f2" : isWarning ? "#fffbeb" : "#f8fafc";
+          const severityText = (sug.severity || "info").toUpperCase();
+
+          const messageText = sug.message || "";
+          const messageHeight = doc.heightOfString(messageText, { width: 465, lineGap: 1.5 });
+          
+          let solutionHeight = 0;
+          if (sug.solution) {
+            solutionHeight = 14 + doc.heightOfString(`Fix / Solution: ${sug.solution}`, { width: 455, lineGap: 1.5 });
+          }
+          
+          let snippetHeight = 0;
+          if (sug.codeSnippet) {
+            snippetHeight = 16 + doc.heightOfString(sug.codeSnippet, { width: 450, lineGap: 1.5 });
+          }
+
+          const cardHeight = 10 + 14 + 6 + messageHeight + (solutionHeight ? solutionHeight + 6 : 0) + (snippetHeight ? snippetHeight + 6 : 0) + 10;
 
           // Check page overflow
           if (doc.y + cardHeight > 730) {
@@ -195,10 +210,28 @@ export class PDFService {
           // Draw severity left-accent line
           doc.strokeColor(severityColor).lineWidth(4).moveTo(50, cardY).lineTo(50, cardY + cardHeight).stroke();
 
-          // Render text inside
+          // Render header text inside card
           doc.fillColor(severityColor).fontSize(9).text(severityText, 65, cardY + 10, { font: "Helvetica-Bold" });
-          doc.fillColor("#64748b").fontSize(9).text(`File: ${sug.file}  |  Line: ${sug.line}`, 150, cardY + 10, { font: "Helvetica" });
-          doc.fillColor("#1e293b").fontSize(9.5).text(sug.message, 65, cardY + 28, { font: "Helvetica", width: 465, lineGap: 1.5 });
+          doc.fillColor("#64748b").fontSize(9).text(`File: ${sug.file || "N/A"}  |  Line: ${sug.line || 1}`, 150, cardY + 10, { font: "Helvetica" });
+          
+          // Render message
+          let currInnerY = cardY + 26;
+          doc.fillColor("#1e293b").fontSize(9.5).text(messageText, 65, currInnerY, { font: "Helvetica", width: 465, lineGap: 1.5 });
+          currInnerY += messageHeight + 6;
+
+          // Render solution if present
+          if (sug.solution) {
+            doc.fillColor("#d97706").fontSize(9).text(`Fix / Solution: `, 65, currInnerY, { font: "Helvetica-Bold", continued: true });
+            doc.fillColor("#334155").fontSize(9).text(sug.solution, { font: "Helvetica", width: 455, lineGap: 1.5 });
+            currInnerY += solutionHeight + 4;
+          }
+
+          // Render code snippet if present
+          if (sug.codeSnippet) {
+            doc.fillColor("#0f172a").rect(65, currInnerY, 465, snippetHeight).fill();
+            doc.fillColor("#10b981").fontSize(8.5).text(sug.codeSnippet, 72, currInnerY + 6, { font: "Courier", width: 450, lineGap: 1.5 });
+            currInnerY += snippetHeight + 6;
+          }
 
           doc.y = cardY + cardHeight + 12; // Advance doc pointer plus vertical spacing
         });

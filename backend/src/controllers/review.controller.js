@@ -153,3 +153,58 @@ export const getPublicReviews = asyncHandler(async (req, res) => {
     reviews,
   });
 });
+
+/**
+ * @desc    Create GitHub Pull Request for a specific suggestion in a review
+ * @route   POST /api/v1/reviews/:id/suggestions/:suggestionIndex/pr
+ * @access  Private
+ */
+export const createSuggestionPR = asyncHandler(async (req, res) => {
+  const { id, suggestionIndex } = req.params;
+  const index = parseInt(suggestionIndex, 10);
+
+  const review = await Review.findOne({
+    _id: id,
+    user: req.user._id,
+  }).populate("project");
+
+  if (!review) {
+    throw new ApiError(404, "Review not found");
+  }
+
+  const suggestion = review.suggestions[index];
+  if (!suggestion) {
+    throw new ApiError(404, "Suggestion item not found");
+  }
+
+  if (!suggestion.codeSnippet) {
+    throw new ApiError(400, "Suggestion does not contain a code snippet to apply.");
+  }
+
+  const project = review.project;
+  if (!project || !project.repoOwner || !project.repoName) {
+    throw new ApiError(400, "Project GitHub metadata missing.");
+  }
+
+  const { GitHubService } = await import("../services/github.service.js");
+  const githubService = new GitHubService();
+
+  const prUrl = await githubService.createFixPullRequest({
+    owner: project.repoOwner,
+    repo: project.repoName,
+    baseBranch: project.defaultBranch || "main",
+    filePath: suggestion.file,
+    originalCode: suggestion.originalCode,
+    codeSnippet: suggestion.codeSnippet,
+    message: suggestion.message,
+    solution: suggestion.solution,
+  });
+
+  // Save PR URL to review document
+  review.suggestions[index].prUrl = prUrl;
+  await review.save();
+
+  return ApiResponse.success(res, 200, "GitHub Pull Request created successfully", {
+    prUrl,
+  });
+});

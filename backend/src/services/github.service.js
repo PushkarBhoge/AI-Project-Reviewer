@@ -80,7 +80,6 @@ export class GitHubService {
   async downloadRepository(owner, repo, branch = "main") {
     const tempDir = path.resolve("tmp/repos");
     const downloadPath = path.join(tempDir, `${owner}-${repo}-${Date.now()}`);
-    const zipFilePath = `${downloadPath}.zip`;
 
     try {
       // 1. Ensure temp dir exists
@@ -126,16 +125,11 @@ export class GitHubService {
         },
       });
 
-      // 4. Save to temp zip file
-      await fs.writeFile(zipFilePath, Buffer.from(zipResponse.data));
-
-      // 5. Extract using adm-zip
+      // 4. Extract directly from in-memory buffer using adm-zip (prevents Windows file lock EBUSY errors)
       logger.info(`Extracting ZIP archive for ${owner}/${repo}...`);
-      const zip = new AdmZip(zipFilePath);
+      const zipBuffer = Buffer.from(zipResponse.data);
+      const zip = new AdmZip(zipBuffer);
       zip.extractAllTo(downloadPath, true);
-
-      // Clean up the ZIP file itself
-      await fs.unlink(zipFilePath);
 
       // GitHub ZIP has a root folder named like: owner-repo-hash
       // We find that single directory and return its path
@@ -151,10 +145,6 @@ export class GitHubService {
       return downloadPath;
     } catch (error) {
       logger.error(`Error downloading repository ${owner}/${repo}: ${error.message}`);
-      // Clean up zip if it exists
-      if (existsSync(zipFilePath)) {
-        await fs.unlink(zipFilePath).catch(() => {});
-      }
       throw new ApiError(500, `Failed to download repository: ${error.message}`);
     }
   }
@@ -217,6 +207,107 @@ export class GitHubService {
       }
     } catch (error) {
       logger.error(`Failed to clean up temp dir ${dirPath}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Automatically create a GitHub branch, commit the suggested fix, and open a Pull Request.
+   */
+  async createFixPullRequest({ owner, repo, baseBranch = "main", filePath, originalCode, codeSnippet, message, solution }) {
+    try {
+      logger.info(`Initiating GitHub PR creation for ${owner}/${repo} file: ${filePath}`);
+
+      // 1. Get latest commit SHA of default branch
+      let refData;
+      try {
+        const { data } = await this.octokit.git.getRef({
+          owner,
+          repo,
+          ref: `heads/${baseBranch}`,
+        });
+        refData = data;
+      } catch (refErr) {
+        const { data } = await this.octokit.git.getRef({
+          owner,
+          repo,
+          ref: "heads/master",
+        });
+        refData = data;
+        baseBranch = "master";
+      }
+
+      const latestCommitSha = refData.object.sha;
+
+      // 2. Create new patch branch
+      const branchName = `ai-fix-${Date.now()}`;
+      await this.octokit.git.createRef({
+        owner,
+        repo,
+        ref: `refs/heads/${branchName}`,
+        sha: latestCommitSha,
+      });
+
+      // 3. Fetch existing file content from repo
+      const { data: fileData } = await this.octokit.repos.getContent({
+        owner,
+        repo,
+        path: filePath,
+        ref: branchName,
+      });
+
+      const currentContent = Buffer.from(fileData.content, "base64").toString("utf8");
+
+      // 4. Compute updated file content
+      let updatedContent = currentContent;
+      if (originalCode && currentContent.includes(originalCode.trim())) {
+        updatedContent = currentContent.replace(originalCode.trim(), codeSnippet.trim());
+      } else {
+        updatedContent = currentContent + `\n\n// AI Suggested Fix:\n${codeSnippet.trim()}\n`;
+      }
+
+      // 5. Commit updated file to branch
+      await this.octokit.repos.createOrUpdateFileContents({
+        owner,
+        repo,
+        path: filePath,
+        message: `fix(ai-audit): ${message ? message.substring(0, 50) : "Apply AI code fix"}`,
+        content: Buffer.from(updatedContent).toString("base64"),
+        sha: fileData.sha,
+        branch: branchName,
+      });
+
+      // 6. Create Pull Request
+      const prTitle = `[AI Fix] Resolve code issue in ${path.basename(filePath)}`;
+      const prBody = `## 🤖 AI Automated Code Fix
+
+**File:** \`${filePath}\`
+**Issue Identified:** ${message || "Code quality / security enhancement"}
+
+### 💡 Proposed Solution
+${solution || "Applied AI recommended refactoring for performance and security."}
+
+### 📝 Code Changes Made
+\`\`\`
+${codeSnippet}
+\`\`\`
+
+---
+*Generated automatically by AI Project Reviewer.*`;
+
+      const { data: pr } = await this.octokit.pulls.create({
+        owner,
+        repo,
+        title: prTitle,
+        head: branchName,
+        base: baseBranch,
+        body: prBody,
+      });
+
+      logger.info(`Successfully created GitHub PR: ${pr.html_url}`);
+      return pr.html_url;
+    } catch (error) {
+      logger.error(`Failed to create GitHub Pull Request: ${error.message}`);
+      throw new ApiError(500, `Failed to create GitHub Pull Request: ${error.message}`);
     }
   }
 }

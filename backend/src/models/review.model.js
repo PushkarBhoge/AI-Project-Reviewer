@@ -52,6 +52,10 @@ const reviewSchema = new mongoose.Schema(
           default: "info",
         },
         message: String,
+        solution: String,
+        originalCode: String,
+        codeSnippet: String,
+        prUrl: String,
       },
     ],
     recommendations: [
