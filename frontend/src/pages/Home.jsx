@@ -163,7 +163,7 @@ export default function Home() {
             <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-bold text-white uppercase tracking-wider animate-pulse">
               New
             </span>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Powered by Gemini 1.5 Flash</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Powered by Advanced AI</p>
           </div>
  
           <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl max-w-3xl animate-slide-up delay-100">
@@ -301,7 +301,7 @@ export default function Home() {
                   </div>
                   <h3 className="mt-6 text-lg font-bold text-slate-900 dark:text-white">2. AI Scans Code</h3>
                   <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 px-4 text-center">
-                      Our Gemini-powered engine deeply analyzes your architecture, security, and performance.
+                      Our AI-powered engine deeply analyzes your architecture, security, and performance.
                   </p>
               </div>
 

@@ -114,7 +114,7 @@ export const runReviewPipeline = async (projectId, userId) => {
       }
     }
 
-    updateProgress("ai_analysis", "Analyzing codebase using Gemini Generative AI...", 80);
+    updateProgress("ai_analysis", "Analyzing codebase using Advanced AI...", 80);
     // Call Gemini AI review
     const aiReview = await aiService.analyzeProject(scanResult, parserResult, fileContents);
 

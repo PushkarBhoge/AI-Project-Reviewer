@@ -66,7 +66,7 @@ export class PDFService {
       }
 
       doc.fillColor(ratingColor).fontSize(14).text(ratingText, 210, scoreCardY + 22, { font: "Helvetica-Bold" });
-      doc.fillColor("#475569").fontSize(9).text("The codebase was assessed across 7 key architectural dimensions by the Gemini AI code reviewing agent. Subscores are outlined in the dimension breakdown matrix below.", 210, scoreCardY + 40, { width: 310, lineGap: 1.5 });
+      doc.fillColor("#475569").fontSize(9).text("The codebase was assessed across 7 key architectural dimensions by the AI code reviewing agent. Subscores are outlined in the dimension breakdown matrix below.", 210, scoreCardY + 40, { width: 310, lineGap: 1.5 });
 
       // ─── Category Breakdown Table ──────────────────────
       const tableStartY = scoreCardY + 105;
