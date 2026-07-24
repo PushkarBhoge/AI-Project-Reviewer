@@ -25,7 +25,7 @@ export const authenticate = async (req, _res, next) => {
       token = req.query.token;
     }
 
-    if (!token) {
+    if (!token || token === "null" || token === "undefined") {
       throw new ApiError(401, "Access denied. No authentication token provided.");
     }
 

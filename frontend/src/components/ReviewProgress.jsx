@@ -15,40 +15,58 @@ const ReviewProgress = ({ projectId, onComplete, onFailure }) => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
-    // We construct absolute or relative path for EventSource
-    const sseUrl = `${window.location.origin}${baseUrl}/sse/${projectId}/progress?token=${token}`;
+    let eventSource;
 
-    logger_info("Connecting to SSE Progress stream: " + sseUrl);
-    const eventSource = new EventSource(sseUrl);
-
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setProgress(data);
-
-        if (data.stage === "complete") {
-          eventSource.close();
-          if (onComplete) onComplete();
-        } else if (data.stage === "failed") {
-          eventSource.close();
-          setError(data.message || "Review pipeline failed");
-          if (onFailure) onFailure(data.message);
+    const initSSE = async () => {
+      let token = null;
+      if (window.Clerk && window.Clerk.session) {
+        try {
+          token = await window.Clerk.session.getToken();
+        } catch (e) {
+          console.warn("Failed to get Clerk token for SSE", e);
         }
-      } catch (err) {
-        console.error("SSE parse error", err);
       }
+      if (!token) {
+        token = localStorage.getItem("token");
+      }
+
+      const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
+      const sseUrl = `${window.location.origin}${baseUrl}/sse/${projectId}/progress?token=${token || ""}`;
+
+      logger_info("Connecting to SSE Progress stream: " + sseUrl);
+      eventSource = new EventSource(sseUrl);
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setProgress(data);
+
+          if (data.stage === "complete") {
+            eventSource.close();
+            if (onComplete) onComplete();
+          } else if (data.stage === "failed") {
+            eventSource.close();
+            setError(data.message || "Review pipeline failed");
+            if (onFailure) onFailure(data.message);
+          }
+        } catch (err) {
+          console.error("SSE parse error", err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("SSE connection error", err);
+        setError("Lost connection to progress stream. Reconnecting...");
+        // Don't close immediately as browser will automatically retry connection
+      };
     };
 
-    eventSource.onerror = (err) => {
-      console.error("SSE connection error", err);
-      setError("Lost connection to progress stream. Reconnecting...");
-      // Don't close immediately as browser will automatically retry connection
-    };
+    initSSE();
 
     return () => {
-      eventSource.close();
+      if (eventSource) {
+        eventSource.close();
+      }
     };
   }, [projectId, onComplete, onFailure]);
 
