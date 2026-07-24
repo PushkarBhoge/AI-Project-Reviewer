@@ -1,6 +1,6 @@
-# AI Code Reviewer
+# RepoLens AI — Deep AI Audits for GitHub Repositories
 
-An intelligent, full-stack application that leverages advanced AI to perform comprehensive code reviews on public GitHub repositories. 
+An intelligent, full-stack application that leverages advanced AI to perform deep code audits and reviews on public GitHub repositories. 
 
 ## Features
 - **Instant GitHub Audits**: Enter any public repository URL and get an instant audit.

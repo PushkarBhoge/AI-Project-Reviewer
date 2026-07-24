@@ -1,68 +1,69 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/auth.service";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const { signOut } = useClerk();
+  
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  // Check for existing session on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    let isMounted = true;
+    if (!isLoaded) return;
+
+    if (isSignedIn && clerkUser) {
+      setLoading(true);
+      // Synchronize Clerk user profile & MongoDB token balance
       authService
         .getProfile()
         .then((res) => {
-          // Verify that response is in standard format { data: { success: true, message: "...", data: { user } } }
-          setUser(res.data.data.user);
+          if (isMounted && res.data?.data?.user) {
+            setUser(res.data.data.user);
+          }
         })
         .catch(() => {
-          localStorage.removeItem("token");
+          // Fallback to local Clerk user representation if backend sync pending
+          if (isMounted) {
+            setUser({
+              name: clerkUser.fullName || clerkUser.firstName || "Developer",
+              email: clerkUser.primaryEmailAddress?.emailAddress || "",
+              avatar: clerkUser.imageUrl,
+              tokens: 3,
+            });
+          }
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
     } else {
+      setUser(null);
       setLoading(false);
     }
-  }, []);
 
-  const login = async (credentials) => {
-    try {
-      const res = await authService.login(credentials);
-      const { token, user: loggedInUser } = res.data.data;
-      localStorage.setItem("token", token);
-      setUser(loggedInUser);
-      return loggedInUser;
-    } catch (error) {
-      throw error.response?.data?.message || "Login failed";
-    }
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoaded, isSignedIn, clerkUser]);
 
-  const register = async (userData) => {
-    try {
-      const res = await authService.register(userData);
-      const { token, user: registeredUser } = res.data.data;
-      localStorage.setItem("token", token);
-      setUser(registeredUser);
-      return registeredUser;
-    } catch (error) {
-      throw error.response?.data?.message || "Registration failed";
-    }
-  };
-
-  const queryClient = useQueryClient();
-
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem("token");
     setUser(null);
     queryClient.clear();
+    await signOut();
   };
 
   const refetchUser = async () => {
     try {
       const res = await authService.getProfile();
-      setUser(res.data.data.user);
+      if (res.data?.data?.user) {
+        setUser(res.data.data.user);
+      }
     } catch (error) {
       console.error("Failed to refetch user", error);
     }
@@ -72,11 +73,11 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        loading,
-        login,
-        register,
+        loading: loading || !isLoaded,
+        isSignedIn,
         logout,
         refetchUser,
+        clerkUser,
       }}
     >
       {children}
@@ -91,3 +92,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

@@ -1,7 +1,7 @@
 {
   "name": "ai-project-reviewer-api",
   "version": "1.0.0",
-  "description": "Backend API for GitHub AI Project Reviewer",
+  "description": "Backend API for RepoLens AI — Deep AI Audits for GitHub Repositories",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@clerk/express": "^2.1.45",
     "@google/generative-ai": "^0.24.1",
     "@octokit/rest": "^22.0.1",
     "adm-zip": "^0.5.18",

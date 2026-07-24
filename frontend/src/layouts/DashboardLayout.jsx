@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
+import { UserButton } from "@clerk/clerk-react";
 import { useAuth } from "@/context/AuthContext";
 import { useReviews } from "@/hooks/useReviews";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -29,7 +30,7 @@ const DashboardLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const navLinks = [
@@ -68,7 +69,7 @@ const DashboardLayout = () => {
             </div>
             {isHovered && (
               <span className="font-extrabold text-sm tracking-tight text-slate-800 dark:text-white whitespace-nowrap transition-all duration-300">
-                AI Code Reviewer
+                RepoLens<span className="text-purple-600 dark:text-purple-400">.AI</span>
               </span>
             )}
           </div>
@@ -173,14 +174,18 @@ const DashboardLayout = () => {
             isHovered ? "p-3" : "p-1.5 justify-center w-12 mx-auto"
           }`}>
             <div className={`flex items-center ${isHovered ? "justify-between" : "justify-center"} overflow-hidden`}>
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 font-bold text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
-                  {getInitials(user?.name)}
-                </div>
+              <div className="flex items-center gap-3 overflow-hidden min-w-0">
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-9 w-9 shrink-0"
+                    }
+                  }} 
+                />
                 {isHovered && (
-                  <div className="overflow-hidden">
+                  <div className="overflow-hidden min-w-0">
                     <span className="block truncate text-xs font-bold text-slate-800 dark:text-white">
-                      {user?.name || "Guest"}
+                      {user?.name || "Developer"}
                     </span>
                     <span className="block truncate text-[10px] text-slate-400">
                       {user?.email || ""}
@@ -189,7 +194,6 @@ const DashboardLayout = () => {
                 )}
               </div>
 
-              {/* Logout button */}
               {isHovered && (
                 <button
                   onClick={handleLogout}
@@ -226,7 +230,7 @@ const DashboardLayout = () => {
               <Github className="h-4.5 w-4.5" />
             </div>
             <span className="font-extrabold text-sm tracking-tight text-slate-800 dark:text-white">
-              AI Code Reviewer
+              RepoLens<span className="text-purple-600 dark:text-purple-400">.AI</span>
             </span>
           </div>
 
@@ -270,15 +274,21 @@ const DashboardLayout = () => {
             </div>
 
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-slate-950/40">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 font-bold text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
-                  {getInitials(user?.name)}
-                </div>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-9 w-9 shrink-0"
+                    }
+                  }} 
+                />
                 <div>
-                  <span className="block text-xs font-bold text-slate-800 dark:text-white">
-                    {user?.name}
+                  <span className="block truncate text-xs font-bold text-slate-800 dark:text-white">
+                    {user?.name || "Developer"}
                   </span>
-                  <span className="block text-[10px] text-slate-400">{user?.email}</span>
+                  <span className="block truncate text-[10px] text-slate-400">
+                    {user?.email || ""}
+                  </span>
                 </div>
               </div>
               <button

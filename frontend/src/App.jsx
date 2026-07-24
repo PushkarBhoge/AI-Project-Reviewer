@@ -6,8 +6,6 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 
 // Pages
 import Home from "@/pages/Home";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import ProjectDetail from "@/pages/ProjectDetail";
 import ReviewDetail from "@/pages/ReviewDetail";
@@ -24,8 +22,6 @@ export default function App() {
       {/* Public routes with Navbar/Footer */}
       <Route element={<RootLayout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
       </Route>
 
       {/* Protected routes with Dashboard layout */}

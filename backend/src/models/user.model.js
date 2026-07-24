@@ -5,6 +5,11 @@ import { env } from "../config/env.js";
 
 const userSchema = new mongoose.Schema(
   {
+    clerkId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     name: {
       type: String,
       required: [true, "Name is required"],
@@ -20,8 +25,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: 6,
       select: false, // Never return password by default
     },
     avatar: {

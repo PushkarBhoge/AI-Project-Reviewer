@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { useAuth } from "@/context/AuthContext";
 import InteractiveBackground from "@/components/InteractiveBackground";
 import { paymentService } from "@/services/payment.service";
@@ -69,7 +70,7 @@ export default function Home() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "AI Project Reviewer",
+        name: "RepoLens AI",
         description: `Purchase ${orderData.packageName}`,
         order_id: orderData.orderId,
         prefill: {
@@ -147,7 +148,7 @@ export default function Home() {
         </div>
       </div>
       <p className="text-sm py-4 text-slate-700 dark:text-slate-300 leading-relaxed">
-        Radiant made undercutting all of our competitors an absolute breeze.
+        RepoLens AI made evaluating and auditing all our GitHub codebases an absolute breeze.
       </p>
     </div>
   );
@@ -159,22 +160,23 @@ export default function Home() {
       <div className="relative z-10 mx-auto max-w-5xl space-y-16 pb-16">
         {/* Hero Section */}
         <div className="flex flex-col items-center justify-center text-center">
-          <div className="flex flex-wrap items-center justify-center gap-3 p-1.5 pr-4 rounded-full border border-slate-300 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 animate-slide-up">
-            <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-bold text-white uppercase tracking-wider animate-pulse">
-              New
+          <div className="flex flex-wrap items-center justify-center gap-3 p-1.5 pr-4 rounded-full border border-purple-200 dark:border-purple-900/60 bg-white/70 dark:bg-slate-900/40 backdrop-blur animate-slide-up shadow-sm">
+            <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-extrabold text-white uppercase tracking-wider animate-pulse">
+              RepoLens AI
             </span>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Powered by Advanced AI</p>
+            <p className="text-xs font-bold text-purple-700 dark:text-purple-300">Deep AI Audits for GitHub Repositories</p>
           </div>
  
-          <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl max-w-3xl animate-slide-up delay-100">
-            AI-Powered GitHub{" "}
+          <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl max-w-4xl animate-slide-up delay-100">
+            RepoLens AI —{" "}
             <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-indigo-400">
-              Code Auditing
-            </span>
+              Deep AI Audits
+            </span>{" "}
+            for GitHub Repositories
           </h1>
           
           <p className="mt-6 max-w-2xl text-lg text-slate-500 dark:text-slate-400 animate-slide-up delay-200">
-            Audit your public repositories in seconds. Get modular reports on code quality, security exposures, performance, best practices, and action roadmaps.
+            Audit your public GitHub repositories in seconds. Get modular AI reports on code quality, security vulnerabilities, architecture bottlenecks, and actionable roadmaps.
           </p>
  
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up delay-300">
@@ -188,19 +190,17 @@ export default function Home() {
               </Link>
             ) : (
               <>
-                <Link
-                  to="/register"
-                  className="cursor-pointer flex items-center gap-2 rounded-xl bg-purple-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/25 transition hover:bg-purple-700 hover:shadow-purple-500/35 hover:-translate-y-0.5 duration-200"
-                >
-                  Get Started Free
-                  <ArrowRight className="h-4.5 w-4.5" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="flex items-center justify-center cursor-pointer rounded-xl border border-slate-200 bg-white px-8 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 hover:-translate-y-0.5 duration-200"
-                >
-                  Log In
-                </Link>
+                <SignUpButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
+                  <button className="cursor-pointer flex items-center gap-2 rounded-xl bg-purple-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/25 transition hover:bg-purple-700 hover:shadow-purple-500/35 hover:-translate-y-0.5 duration-200">
+                    Get Started Free
+                    <ArrowRight className="h-4.5 w-4.5" />
+                  </button>
+                </SignUpButton>
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
+                  <button className="flex items-center justify-center cursor-pointer rounded-xl border border-slate-200 bg-white px-8 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 hover:-translate-y-0.5 duration-200">
+                    Log In
+                  </button>
+                </SignInButton>
               </>
             )}
           </div>

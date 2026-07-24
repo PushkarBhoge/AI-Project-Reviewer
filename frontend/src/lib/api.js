@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1";
 /**
  * Pre-configured Axios instance.
  * - Base URL from environment
- * - Auto-attaches JWT from localStorage
+ * - Auto-attaches Clerk JWT or localStorage fallback token
  * - Response interceptor for 401 handling
  */
 const api = axios.create({
@@ -16,12 +16,22 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// ─── Request Interceptor: Attach JWT ──────────────
+// ─── Request Interceptor: Attach Clerk Token ──────────────
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    try {
+      let token = null;
+      if (window.Clerk && window.Clerk.session) {
+        token = await window.Clerk.session.getToken();
+      }
+      if (!token) {
+        token = localStorage.getItem("token");
+      }
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (e) {
+      console.warn("Failed to get Clerk token for API request", e);
     }
     return config;
   },
@@ -34,11 +44,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && !error.config?.url?.includes("/payments")) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      if (window.location.pathname.startsWith("/dashboard") || window.location.pathname.startsWith("/reviews") || window.location.pathname.startsWith("/history")) {
+        window.location.href = "/";
+      }
     }
     return Promise.reject(error);
   }
 );
 
-
 export default api;
+

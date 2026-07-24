@@ -292,7 +292,7 @@ ${codeSnippet}
 \`\`\`
 
 ---
-*Generated automatically by AI Project Reviewer.*`;
+*Generated automatically by RepoLens AI — Deep AI Audits for GitHub Repositories.*`;
 
       const { data: pr } = await this.octokit.pulls.create({
         owner,

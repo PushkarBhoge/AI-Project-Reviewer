@@ -29,9 +29,9 @@ export class PDFService {
       
       // Header
       doc.y = 70;
-      doc.fillColor("#6b21a8").fontSize(26).text("AI CODE AUDIT REPORT", { align: "center", font: "Helvetica-Bold" });
+      doc.fillColor("#6b21a8").fontSize(22).text("REPOLENS AI — DEEP CODE AUDIT REPORT", { align: "center", font: "Helvetica-Bold" });
       doc.moveDown(0.2);
-      doc.fillColor("#64748b").fontSize(9.5).text("AUTOMATED SECURITY, ARCHITECTURE & PERFORMANCE REVIEW", { align: "center", font: "Helvetica" });
+      doc.fillColor("#64748b").fontSize(9.5).text("DEEP AI AUDITS FOR GITHUB REPOSITORIES", { align: "center", font: "Helvetica" });
       
       // ─── Metadata Info Grid ────────────────────────────
       const metaY = doc.y + 20;
@@ -252,7 +252,7 @@ export class PDFService {
         
         // Footer text
         doc.fillColor("#94a3b8").fontSize(8);
-        doc.text(`AI Project Reviewer | Generated on ${dateStr}`, 50, 788, { font: "Helvetica" });
+        doc.text(`RepoLens AI — Deep AI Audits for GitHub Repositories | Generated on ${dateStr}`, 50, 788, { font: "Helvetica" });
         doc.text(`Page ${i + 1} of ${pages.count}`, 50, 788, { align: "right", width: 495, font: "Helvetica" });
       }
 

@@ -1,6 +1,7 @@
 import { MenuIcon, XIcon, Github, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 
@@ -34,9 +35,11 @@ export default function Navbar() {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600 text-white font-extrabold shadow shadow-purple-500/25">
           <Github className="h-4.5 w-4.5" />
         </div>
-        <span className="font-extrabold text-sm tracking-tight text-slate-800 dark:text-white">
-          AI Code Reviewer
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">
+            RepoLens<span className="text-purple-600 dark:text-purple-400">.AI</span>
+          </span>
+        </div>
       </Link>
 
       {/* Nav Menu - Desktop */}
@@ -81,18 +84,16 @@ export default function Navbar() {
           </div>
         ) : (
           <div className="hidden md:flex items-center gap-3">
-            <Link
-              to="/login"
-              className="px-4 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-800 rounded-xl dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/register"
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition text-sm font-semibold text-white rounded-xl shadow-lg shadow-purple-500/20"
-            >
-              Get started
-            </Link>
+            <SignInButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
+              <button className="px-4 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-800 rounded-xl dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+                Sign in
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
+              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition text-sm font-semibold text-white rounded-xl shadow-lg shadow-purple-500/20 cursor-pointer">
+                Get started
+              </button>
+            </SignUpButton>
           </div>
         )}
 
@@ -130,20 +131,22 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex flex-col gap-3 pt-2">
-              <Link
-                to="/login"
-                onClick={() => setOpenMobileMenu(false)}
-                className="flex items-center justify-center w-full px-4 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-800 rounded-xl dark:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/register"
-                onClick={() => setOpenMobileMenu(false)}
-                className="flex items-center justify-center w-full px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white transition font-semibold rounded-xl text-sm"
-              >
-                Get started
-              </Link>
+              <SignInButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
+                <button
+                  onClick={() => setOpenMobileMenu(false)}
+                  className="flex items-center justify-center w-full px-4 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-800 rounded-xl dark:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition cursor-pointer"
+                >
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
+                <button
+                  onClick={() => setOpenMobileMenu(false)}
+                  className="flex items-center justify-center w-full px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white transition font-semibold rounded-xl text-sm cursor-pointer"
+                >
+                  Get started
+                </button>
+              </SignUpButton>
             </div>
           )}
         </div>

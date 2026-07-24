@@ -39,7 +39,7 @@ export default function Billing() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "AI Project Reviewer",
+        name: "RepoLens AI",
         description: `Purchase ${orderData.packageName}`,
         order_id: orderData.orderId,
         prefill: {

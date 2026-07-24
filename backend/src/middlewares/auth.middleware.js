@@ -1,18 +1,22 @@
 import jwt from "jsonwebtoken";
+import { createClerkClient, verifyToken } from "@clerk/backend";
 import { env } from "../config/env.js";
 import User from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
+import { logger } from "../config/logger.js";
+
+const clerkClient = (env.CLERK_SECRET_KEY && !env.CLERK_SECRET_KEY.includes("sample")) 
+  ? createClerkClient({ secretKey: env.CLERK_SECRET_KEY, publishableKey: env.CLERK_PUBLISHABLE_KEY }) 
+  : null;
 
 /**
- * JWT Authentication Middleware
- * - Extracts Bearer token from Authorization header
- * - Verifies token signature and expiration
- * - Attaches decoded user document to req.user
- * - Returns 401 for missing/invalid/expired tokens
+ * Authentication Middleware (Clerk & Legacy JWT)
+ * - Verifies Clerk JWT tokens using Clerk Backend API
+ * - Auto-syncs/upserts user in MongoDB with default 3 tokens
+ * - Attaches user document to req.user
  */
 export const authenticate = async (req, _res, next) => {
   try {
-    // 1. Extract token from header or query param
     let token;
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -22,30 +26,81 @@ export const authenticate = async (req, _res, next) => {
     }
 
     if (!token) {
-      throw new ApiError(401, "Access denied. No token provided.");
+      throw new ApiError(401, "Access denied. No authentication token provided.");
     }
 
-    // 2. Verify token
-    const decoded = jwt.verify(token, env.JWT_SECRET);
+    let authenticatedUser = null;
 
-    // 3. Find user and attach to request
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      throw new ApiError(401, "Token is valid but user no longer exists.");
+    // 1. Try Clerk Token Verification if Clerk secret is configured
+    if (env.CLERK_SECRET_KEY && !env.CLERK_SECRET_KEY.includes("sample")) {
+      try {
+        const payload = await verifyToken(token, {
+          secretKey: env.CLERK_SECRET_KEY,
+        });
+
+        if (payload && payload.sub) {
+          const clerkUserId = payload.sub;
+          
+          authenticatedUser = await User.findOne({ clerkId: clerkUserId });
+
+          if (!authenticatedUser) {
+            let name = "Developer";
+            let email = `${clerkUserId}@clerk.user`;
+            let avatar = "";
+
+            if (clerkClient) {
+              try {
+                const clerkUser = await clerkClient.users.getUser(clerkUserId);
+                name = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "Developer";
+                email = clerkUser.emailAddresses?.[0]?.emailAddress || email;
+                avatar = clerkUser.imageUrl || "";
+              } catch (err) {
+                logger.warn(`Could not fetch Clerk user metadata: ${err.message}`);
+              }
+            }
+
+            authenticatedUser = await User.findOneAndUpdate(
+              { email },
+              {
+                $setOnInsert: {
+                  clerkId: clerkUserId,
+                  name,
+                  email,
+                  avatar,
+                  tokens: 3,
+                  role: "user"
+                }
+              },
+              { new: true, upsert: true }
+            );
+          }
+        }
+      } catch (clerkErr) {
+        logger.debug(`Clerk token verification failed: ${clerkErr.message}`);
+      }
     }
 
-    req.user = user;
+    // 2. Fallback to Legacy JWT token verification
+    if (!authenticatedUser) {
+      try {
+        const decoded = jwt.verify(token, env.JWT_SECRET);
+        authenticatedUser = await User.findById(decoded.id);
+      } catch (legacyErr) {
+        // Ignored
+      }
+    }
+
+    if (!authenticatedUser) {
+      throw new ApiError(401, "Authentication failed or token invalid/expired.");
+    }
+
+    req.user = authenticatedUser;
     next();
   } catch (error) {
     if (error instanceof ApiError) {
       return next(error);
     }
-    if (error.name === "JsonWebTokenError") {
-      return next(new ApiError(401, "Invalid token."));
-    }
-    if (error.name === "TokenExpiredError") {
-      return next(new ApiError(401, "Token has expired. Please log in again."));
-    }
-    next(new ApiError(401, "Authentication failed."));
+    return next(new ApiError(401, "Authentication failed. Please sign in."));
   }
 };
+
