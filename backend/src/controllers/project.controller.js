@@ -49,7 +49,7 @@ export const createProject = asyncHandler(async (req, res) => {
     status: "pending",
   });
 
-  return ApiResponse.success(res, 210, "Project created successfully", {
+  return ApiResponse.success(res, 201, "Project created successfully", {
     project,
   });
 });

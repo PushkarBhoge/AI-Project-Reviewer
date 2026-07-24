@@ -3,6 +3,7 @@ import { env } from "../config/env.js";
 import { ApiError } from "../utils/ApiError.js";
 import { logger } from "../config/logger.js";
 import fs from "fs/promises";
+import os from "os";
 import { existsSync } from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
@@ -13,6 +14,7 @@ export class GitHubService {
     this.octokit = new Octokit({
       auth: env.GITHUB_TOKEN || undefined,
     });
+    this.metadataCache = new Map();
   }
 
   /**
@@ -49,13 +51,22 @@ export class GitHubService {
    * Fetch repository metadata from GitHub.
    */
   async fetchRepoMetadata(owner, repo) {
+    const key = `${owner}/${repo}`;
+    const cached = this.metadataCache.get(key);
+    const now = Date.now();
+
+    if (cached && cached.expiry > now) {
+      logger.info(`GitHub metadata cache hit for ${key}`);
+      return cached.data;
+    }
+
     try {
       const { data } = await this.octokit.repos.get({
         owner,
         repo,
       });
 
-      return {
+      const result = {
         repoName: data.name,
         repoOwner: data.owner.login,
         description: data.description || "",
@@ -65,6 +76,9 @@ export class GitHubService {
         topics: data.topics || [],
         defaultBranch: data.default_branch || "main",
       };
+
+      this.metadataCache.set(key, { data: result, expiry: now + 15 * 60 * 1000 });
+      return result;
     } catch (error) {
       logger.error(`Error fetching GitHub metadata for ${owner}/${repo}: ${error.message}`);
       if (error.status === 404) {
@@ -78,7 +92,7 @@ export class GitHubService {
    * Download repository ZIP, extract to a temporary folder, and return folder path.
    */
   async downloadRepository(owner, repo, branch = "main") {
-    const tempDir = path.resolve("tmp/repos");
+    const tempDir = path.join(os.tmpdir(), "repo-lens-repos");
     const downloadPath = path.join(tempDir, `${owner}-${repo}-${Date.now()}`);
 
     try {

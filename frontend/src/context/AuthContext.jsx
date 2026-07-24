@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
               name: clerkUser.fullName || clerkUser.firstName || "Developer",
               email: clerkUser.primaryEmailAddress?.emailAddress || "",
               avatar: clerkUser.imageUrl,
-              tokens: 3,
+              tokens: 0,
             });
           }
         })

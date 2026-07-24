@@ -25,7 +25,7 @@ export const createReview = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Project not found");
   }
 
-  // 1.5. Check user tokens
+  // 2.5. Check user tokens (soft check; actual deduction happens after pipeline succeeds)
   const user = await User.findById(req.user._id);
   if (!user || user.tokens <= 0) {
     throw new ApiError(402, "Insufficient tokens. Please purchase more tokens to audit repositories.");
@@ -38,14 +38,15 @@ export const createReview = asyncHandler(async (req, res) => {
     });
   }
 
-  // 2.5. Deduct token and save user
-  user.tokens -= 1;
-  await user.save();
-
   // 3. Start review pipeline asynchronously in background
-  runReviewPipeline(projectId, req.user._id).catch((err) => {
-    logger.error(`Background Review Pipeline error for project ${projectId}: ${err.message}`);
-  });
+  runReviewPipeline(projectId, req.user._id)
+    .then(async () => {
+      await User.findByIdAndUpdate(req.user._id, { $inc: { tokens: -1 } });
+      logger.info(`Deducted 1 token for successful review of project ${projectId}`);
+    })
+    .catch((err) => {
+      logger.error(`Background Review Pipeline error for project ${projectId}: ${err.message}`);
+    });
 
   // 4. Return success immediately (202 Accepted style)
   return ApiResponse.success(res, 202, "AI Review started in background", {
@@ -113,11 +114,15 @@ export const downloadReviewPDF = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Review not found");
   }
 
+  const sanitizedName = (review.project?.repoName || "project")
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "") || "project";
+
+  const filename = `audit-report-${sanitizedName}.pdf`;
+
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=audit-report-${review.project?.repoName || "project"}.pdf`
-  );
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
 
   const { pdfService } = await import("../services/pdf.service.js");
   pdfService.generateReviewPDF(review, res);

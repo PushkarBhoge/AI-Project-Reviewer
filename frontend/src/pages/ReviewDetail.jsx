@@ -7,6 +7,7 @@ import CategoryCard from "@/components/review/CategoryCard";
 import { ArrowLeft, Download, AlertCircle, FileText, CheckCircle2, ChevronRight, RefreshCw, Lightbulb, Code2, Copy, Check, GitPullRequest, ExternalLink, Columns, Loader2 } from "lucide-react";
 import { reviewService } from "@/services/review.service";
 import { toast } from "react-hot-toast";
+import api from "@/lib/api";
 
 const ReviewDetail = () => {
   const { id } = useParams();
@@ -78,15 +79,28 @@ const ReviewDetail = () => {
     }
   };
 
-  const handleDownloadPdf = () => {
-    const token = localStorage.getItem("token");
-    const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
-    
-    // We navigate the browser directly to the PDF endpoint passing JWT token
-    const pdfUrl = `${baseUrl}/reviews/${id}/pdf?token=${token}`;
-    
-    toast.success("Generating PDF report...");
-    window.open(pdfUrl, "_blank");
+  const handleDownloadPdf = async () => {
+    try {
+      toast.loading("Preparing PDF report...", { id: "pdf-toast" });
+      const response = await api.get(`/reviews/${id}/pdf`, {
+        responseType: "blob",
+      });
+
+      const blob = response.data;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `audit-report-${review?.project?.repoName || "project"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("PDF report downloaded", { id: "pdf-toast" });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to download PDF report", { id: "pdf-toast" });
+    }
   };
 
   if (isLoading) {
