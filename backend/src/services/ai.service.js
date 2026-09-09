@@ -41,12 +41,22 @@ export class AIService {
       });
 
       // 2. Build the system & user prompts
-      const systemInstruction = `You are an elite, senior software architect, security auditor, and UI/UX expert.
-Your job is to perform a rigorous review of a codebase and output a structured JSON report.
-Be detailed, critical, and provide practical refactoring advice.
+      const systemInstruction = `You are a world-class Principal Software Architect, Polyglot Systems Engineer, and Cybersecurity Auditor.
+You possess deep, production-grade expertise across ALL software engineering domains and paradigms:
+- Web & Frontend Applications (React, Next.js, Vue, Angular, Svelte, static web)
+- Backend Services, APIs & Microservices (Node/Express/Nest, Python/FastAPI/Django/Flask, Go, Java/Spring Boot, C#/.NET, Rust, PHP, Ruby)
+- Command-Line Tools, CLI Utilities & Shell Scripts (argparse, click, commander, cobra, clap, bash)
+- Reusable Libraries, SDKs & Open-Source Packages (npm, PyPI, Crates, Go modules, RubyGems)
+- Mobile Applications (React Native, Flutter, Swift/iOS, Kotlin/Android)
+- Data Science, Machine Learning & AI Workflows (PyTorch, TensorFlow, Pandas, ETL pipelines, training/inference scripts)
+- Systems, Embedded & Desktop Software (C, C++, Rust, Electron, Tauri)
+- Cloud-Native & DevOps (Docker, CI/CD pipelines, IaC, Kubernetes)
+
+Your mission is to perform a rigorous, highly contextual, domain-aware code audit of the provided repository and return a structured JSON evaluation report.
+Be detailed, critical, and provide practical, language-idiomatic refactoring advice.
 For scores:
 - Categories have a maximum score of 20.
-- Overall score is out of 100, which is the sum of (architecture + security + performance + documentation + codeQuality) or scaled/aggregated from all category scores.
+- Overall score is out of 100, which is an aggregated reflection of the project's production-readiness.
 
 You MUST follow the JSON schema provided below. Do not return any other text besides the JSON.`;
 
@@ -69,15 +79,47 @@ Security Leak Warnings: ${JSON.stringify(parserResult.securityAlerts)}
 PROJECT CODEFILES (RELEVANT PORTIONS):
 ${codebaseContext}
 
-Task: Conduct a complete audit of this codebase and fill out the JSON schema below.
-Ensure strengths/weaknesses and suggestions are custom-tailored to the actual code files provided.
-If files or components suggest UI structures, evaluate accessibility, dark mode, responsive styles (Tailwind, CSS) under the uiux category.
-If config or source code suggests testing libraries (Jest, PyTest), evaluate coverage under testing.
+AUDIT INSTRUCTIONS:
+1. First, identify the primary PROJECT ARCHETYPE (e.g., Backend API / Microservice, Frontend / Web App, Full-stack Web App, CLI Tool / Utility, Reusable Library / SDK, Mobile App, Data Science / ML Pipeline, or Systems / Low-level Software) from the dependencies, configuration, and source files.
+2. Evaluate the codebase strictly within the context of its archetype and programming language:
+   - "architecture" (or "bestPractices"):
+     * Web/Frontend: Component hierarchy, state management, UI/business logic separation.
+     * Backend/APIs: Layered separation (controllers/routes, services/business logic, data models/repositories), middleware flow, connection management, dependency injection.
+     * CLI/Tools: Command-routing/dispatch pattern, separation of CLI parsing from core business logic, modular execution.
+     * Libraries/SDKs: Clean public API export surface, loose coupling, extensibility, minimal external dependency footprint.
+     * Data/ML: Pipeline modularity, reproducible runs, configuration separation from model logic.
+     * Systems/Low-level: Resource lifecycle management (RAII), modular driver/subsystem boundaries.
+   - "security":
+     * Web/Frontend: XSS, CSRF, insecure token storage, open redirects, exposed sensitive client keys.
+     * Backend/APIs: Injection vulnerabilities (SQL, NoSQL, command), auth/authz (JWT, RBAC), input validation/sanitization, rate limiting, CORS configuration, secrets management.
+     * CLI/Tools: Command injection, unsafe shell execution, arbitrary file traversal/writes, insecure temp files, privilege handling.
+     * Libraries/SDKs: Dependency vulnerabilities, prototype pollution, safe deserialization, safe memory handling.
+     * Universal: Hardcoded secrets, API keys, credentials, leaked stack traces.
+   - "performance":
+     * Web/Frontend: Bundle size, unnecessary re-renders, asset optimization, lazy loading.
+     * Backend/APIs: Async non-blocking I/O, database query efficiency (N+1 queries, indexing), caching strategies, connection pooling, event-loop blocking.
+     * CLI/Tools: Startup latency, streaming I/O for large files or stdout/stdin, memory footprint.
+     * Libraries/SDKs: Algorithmic complexity (time/space), zero-overhead abstractions, tree-shakeability.
+     * Data/ML: Vectorized operations (NumPy/Pandas vs slow Python loops), GPU batching, data generator pipelines.
+     * Systems: Memory leaks, CPU cache locality, concurrency locks, resource cleanup.
+   - "documentation":
+     * README clarity, installation/getting-started guide, usage examples, configuration parameters/env vars, API/CLI references, and license.
+   - "codeQuality":
+     * Idiomatic code adhering to the language's best conventions (e.g., PEP 8 for Python, Effective Go, modern TypeScript/ESNext, Rust idioms, modern C++ patterns). DRY, SOLID, clean naming, defensive error handling.
+   - "testing":
+     * Automated test coverage, unit/integration/E2E test quality, test assertions, mocking, and edge-case coverage appropriate for the project type.
+   - "uiux" (UI/UX & Developer Experience):
+     * If Graphical Web / Mobile / Desktop: Evaluate visual design hierarchy, responsiveness, accessibility (WCAG/ARIA), themes/dark mode, and user feedback states (loading/error/empty).
+     * If Backend API / Service: Evaluate Developer Experience (DX) & API Design (RESTful/GraphQL consistency, predictable JSON envelope structures, proper HTTP status codes, informative error payloads, versioning, pagination).
+     * If CLI Tool / Terminal App: Evaluate Command-Line UX / Ergonomics (clear --help documentation, intuitive flag/argument design, colored/formatted terminal outputs, progress feedback, non-zero exit codes on error).
+     * If Library / SDK / Package: Evaluate Developer Experience (DX) & Public Interface Ergonomics (clean class/method signatures, sensible defaults, comprehensive TypeScript type definitions or docstrings, minimal consumer boilerplate).
+     * If Data / ML / Script: Evaluate Operator Experience (clear parameterization, informative logging/progress indicators, unambiguous output file saving).
+3. Provide concrete refactoring suggestions with real, runnable code snippets in the project's actual programming language. For each suggestion, "severity" MUST be strictly one of: "critical" (security flaws, fatal crashes, data leaks), "warning" (code smells, performance bottlenecks, architecture anti-patterns), or "info" (best practices, style, documentation). Do not use any other severity values.
 
 Output Schema:
 {
   "overallScore": 85,
-  "summary": "Short executive summary paragraph of code status",
+  "summary": "Executive summary paragraph covering project archetype, status, and overall readiness",
   "categories": {
     "architecture": {
       "score": 16,
@@ -131,13 +173,13 @@ Output Schema:
   },
   "suggestions": [
     {
-      "file": "path/relative/to/repo/file.js",
+      "file": "path/relative/to/repo/file.ext",
       "line": 42,
-      "severity": "critical", // info, warning, critical
+      "severity": "critical", // MUST be strictly one of: "critical", "warning", or "info"
       "message": "Specific issue description detailing the code flaw or vulnerability",
       "solution": "Clear, actionable step-by-step instructions on how to solve this specific issue",
-      "originalCode": "// Problematic code snippet as it currently exists in the repository around line 42\nconst rawData = req.body.data;",
-      "codeSnippet": "// Concise, production-ready code snippet showing how to resolve the issue\nconst rawData = sanitize(req.body.data);"
+      "originalCode": "// Problematic code snippet as it currently exists in the repository\nconst raw = input;",
+      "codeSnippet": "// Concise, production-ready code snippet showing how to resolve the issue\nconst clean = sanitize(input);"
     }
   ],
   "recommendations": [
@@ -184,6 +226,24 @@ Output Schema:
       cleanJson = cleanJson.trim();
 
       const parsed = JSON.parse(cleanJson);
+
+      // Sanitize and normalize suggestions severity to ensure DB enum compatibility
+      if (Array.isArray(parsed.suggestions)) {
+        parsed.suggestions = parsed.suggestions.map((sug) => {
+          const raw = String(sug.severity || "").toLowerCase().trim();
+          let severity = "info";
+          if (raw === "critical" || raw === "high" || raw === "blocker" || raw === "error") {
+            severity = "critical";
+          } else if (raw === "warning" || raw === "medium" || raw === "warn") {
+            severity = "warning";
+          }
+          return {
+            ...sug,
+            severity,
+          };
+        });
+      }
+
       return parsed;
     } catch (error) {
       logger.error(`JSON Parsing failed on Gemini response: ${error.message}. Raw response: ${response}`);

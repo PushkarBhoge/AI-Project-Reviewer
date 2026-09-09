@@ -19,7 +19,7 @@ export class ParserService {
       };
 
       // We only parse source code files
-      const codeExtensions = /\.(js|jsx|ts|tsx|py|java|go|rb|php|cpp|c|h|cs)$/i;
+      const codeExtensions = /\.(js|jsx|ts|tsx|py|java|go|rb|php|cpp|c|h|cs|rs|kt|swift|sh)$/i;
 
       // Limit scanning to at most 100 code files to prevent memory/performance issues
       const candidateFiles = fileTree.filter(
@@ -31,6 +31,7 @@ export class ParserService {
         const score = (p) => {
           if (p.includes("src/")) return 1;
           if (p.includes("app/")) return 1;
+          if (p.includes("cmd/")) return 1;
           if (p.includes("lib/")) return 2;
           if (p.includes("test/") || p.includes("spec/")) return 4;
           return 3;
@@ -48,14 +49,22 @@ export class ParserService {
           // Multi-language parsing regexes
           const isJS = /\.(js|jsx|ts|tsx)$/i.test(file.name);
           const isPython = /\.py$/i.test(file.name);
+          const isGo = /\.go$/i.test(file.name);
+          const isRust = /\.rs$/i.test(file.name);
 
           // 1. Structural regexes
-          let classRegex = /class\s+([A-Za-z0-9_]+)/g;
+          let classRegex = /(?:class|struct|interface)\s+([A-Za-z0-9_]+)/g;
           let funcRegex = /(?:function\s+([A-Za-z0-9_]+)|const\s+([A-Za-z0-9_]+)\s*=\s*(?:\([^)]*\)|[A-Za-z0-9_]+)\s*=>)/g;
 
           if (isPython) {
             classRegex = /class\s+([A-Za-z0-9_]+)\s*(\(|:)/g;
             funcRegex = /def\s+([A-Za-z0-9_]+)\s*\(/g;
+          } else if (isGo) {
+            classRegex = /type\s+([A-Za-z0-9_]+)\s+struct/g;
+            funcRegex = /func\s+(?:\([^)]+\)\s+)?([A-Za-z0-9_]+)\s*\(/g;
+          } else if (isRust) {
+            classRegex = /(?:struct|enum|trait)\s+([A-Za-z0-9_]+)/g;
+            funcRegex = /fn\s+([A-Za-z0-9_]+)\s*(?:<[^>]+>)?\s*\(/g;
           }
 
           // Reset regexes

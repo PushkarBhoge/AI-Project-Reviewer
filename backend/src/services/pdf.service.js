@@ -103,7 +103,7 @@ export class PDFService {
         { key: "documentation", label: "Documentation & Readme" },
         { key: "bestPractices", label: "Architecture & MVC Layering" },
         { key: "testing", label: "Testing Suite Config" },
-        { key: "uiux", label: "UI/UX & Accessibility" },
+        { key: "uiux", label: "UI/UX & Developer Experience (DX)" },
       ];
 
       doc.fillColor("#0f172a").fontSize(12).text("Auditing Dimensions Breakdown", { font: "Helvetica-Bold" });

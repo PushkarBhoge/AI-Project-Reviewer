@@ -68,25 +68,28 @@ export const runReviewPipeline = async (projectId, userId) => {
 
     updateProgress("ai_context", "Preparing source code files for AI review...", 65);
     // Read contents of important files (limit count to avoid exceeding tokens)
-    // Priority: main/src folders, config files, routes, app files, components. Skip large files or test files if possible.
+    // Priority: main/src folders, entrypoints, controllers/handlers, configs, pipelines. Skip large files or test files if possible.
     const eligibleFiles = fileTree.filter((file) => {
       const p = file.path.toLowerCase();
-      // Skip binary, lock, asset files
+      // Skip binary, lock, vendor, asset files
       return (
-        /\.(js|jsx|ts|tsx|py|java|go)$/i.test(file.name) &&
+        /\.(js|jsx|ts|tsx|py|java|go|rs|c|cpp|h|hpp|cs|rb|php|swift|kt|kts|sh|dart|scala|sql)$/i.test(file.name) &&
         !p.includes("node_modules") &&
+        !p.includes("vendor") &&
+        !p.includes("target/") &&
         !p.includes("package-lock") &&
         !p.includes("yarn.lock") &&
         !p.includes("pnpm-lock") &&
+        !p.includes(".git/") &&
         !p.includes("dist") &&
         !p.includes("build") &&
         file.size < 150000 // < 150KB
       );
     });
 
-    // Sort to prioritize controllers, routes, configuration files, and main entry files
+    // Sort to prioritize core entrypoints, routes/controllers, configuration, and main files across all project types
     eligibleFiles.sort((a, b) => {
-      const keywords = ["app", "index", "server", "route", "controller", "config", "auth"];
+      const keywords = ["main", "app", "index", "server", "route", "controller", "service", "handler", "api", "cmd", "cli", "config", "auth", "lib", "model", "pipeline"];
       const score = (p) => {
         let sc = 10;
         keywords.forEach((key, idx) => {
@@ -135,7 +138,19 @@ export const runReviewPipeline = async (projectId, userId) => {
         testing: aiReview.categories?.testing || { score: 0, feedback: "" },
         uiux: aiReview.categories?.uiux || { score: 0, feedback: "" },
       },
-      suggestions: aiReview.suggestions || [],
+      suggestions: (aiReview.suggestions || []).map((sug) => {
+        const rawSev = String(sug.severity || "").toLowerCase().trim();
+        let severity = "info";
+        if (rawSev === "critical" || rawSev === "high" || rawSev === "blocker" || rawSev === "error") {
+          severity = "critical";
+        } else if (rawSev === "warning" || rawSev === "medium" || rawSev === "warn") {
+          severity = "warning";
+        }
+        return {
+          ...sug,
+          severity,
+        };
+      }),
       recommendations: aiReview.recommendations || [],
     });
 

@@ -48,7 +48,13 @@ const reviewSchema = new mongoose.Schema(
         line: Number,
         severity: {
           type: String,
-          enum: ["info", "warning", "critical"],
+          enum: ["info", "warning", "critical", "low", "medium", "high"],
+          set: (val) => {
+            const s = String(val || "").toLowerCase().trim();
+            if (s === "critical" || s === "high" || s === "blocker" || s === "error") return "critical";
+            if (s === "warning" || s === "medium" || s === "warn") return "warning";
+            return "info";
+          },
           default: "info",
         },
         message: String,

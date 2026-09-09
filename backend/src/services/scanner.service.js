@@ -100,6 +100,12 @@ export class ScannerService {
         ".cpp": "C++",
         ".c": "C",
         ".cs": "C#",
+        ".rs": "Rust",
+        ".kt": "Kotlin",
+        ".swift": "Swift",
+        ".dart": "Dart",
+        ".scala": "Scala",
+        ".sql": "SQL",
         ".html": "HTML",
         ".css": "CSS",
         ".sh": "Shell",
@@ -226,6 +232,78 @@ export class ScannerService {
           }
         } catch (err) {
           logger.error(`Error reading requirements.txt: ${err.message}`);
+        }
+      }
+
+      // Go projects
+      const goModFile = fileTree.find((f) => f.name === "go.mod");
+      if (goModFile) {
+        metrics.language = metrics.language === "Unknown" ? "Go" : metrics.language;
+        try {
+          const mod = await fs.readFile(goModFile.absolutePath, "utf8");
+          if (/github\.com\/gin-gonic\/gin/i.test(mod)) metrics.framework = "Gin";
+          else if (/github\.com\/gofiber\/fiber/i.test(mod)) metrics.framework = "Fiber";
+          else if (/github\.com\/labstack\/echo/i.test(mod)) metrics.framework = "Echo";
+          else if (/github\.com\/spf13\/cobra/i.test(mod)) metrics.framework = "Cobra (CLI)";
+          else if (metrics.framework === "Unknown") metrics.framework = "Go Standard Library / Service";
+        } catch (err) {
+          logger.error(`Error reading go.mod: ${err.message}`);
+        }
+      }
+
+      // Rust projects
+      const cargoTomlFile = fileTree.find((f) => f.name === "Cargo.toml");
+      if (cargoTomlFile) {
+        metrics.language = metrics.language === "Unknown" ? "Rust" : metrics.language;
+        try {
+          const toml = await fs.readFile(cargoTomlFile.absolutePath, "utf8");
+          if (/actix-web/i.test(toml)) metrics.framework = "Actix Web";
+          else if (/axum/i.test(toml)) metrics.framework = "Axum";
+          else if (/rocket/i.test(toml)) metrics.framework = "Rocket";
+          else if (/clap/i.test(toml)) metrics.framework = "Clap (CLI)";
+          else if (metrics.framework === "Unknown") metrics.framework = "Rust Crate / Binary";
+        } catch (err) {
+          logger.error(`Error reading Cargo.toml: ${err.message}`);
+        }
+      }
+
+      // Java projects
+      const pomFile = fileTree.find((f) => f.name === "pom.xml" || f.name === "build.gradle");
+      if (pomFile) {
+        metrics.language = metrics.language === "Unknown" ? "Java" : metrics.language;
+        try {
+          const buildFile = await fs.readFile(pomFile.absolutePath, "utf8");
+          if (/spring-boot/i.test(buildFile)) metrics.framework = "Spring Boot";
+          else if (/quarkus/i.test(buildFile)) metrics.framework = "Quarkus";
+          else if (metrics.framework === "Unknown") metrics.framework = "Java Application";
+        } catch (err) {
+          logger.error(`Error reading Java build file: ${err.message}`);
+        }
+      }
+
+      // Ruby projects
+      const gemfile = fileTree.find((f) => f.name === "Gemfile");
+      if (gemfile) {
+        metrics.language = metrics.language === "Unknown" ? "Ruby" : metrics.language;
+        try {
+          const gems = await fs.readFile(gemfile.absolutePath, "utf8");
+          if (/rails/i.test(gems)) metrics.framework = "Ruby on Rails";
+          else if (/sinatra/i.test(gems)) metrics.framework = "Sinatra";
+        } catch (err) {
+          logger.error(`Error reading Gemfile: ${err.message}`);
+        }
+      }
+
+      // PHP projects
+      const composerJson = fileTree.find((f) => f.name === "composer.json");
+      if (composerJson) {
+        metrics.language = metrics.language === "Unknown" ? "PHP" : metrics.language;
+        try {
+          const comp = await fs.readFile(composerJson.absolutePath, "utf8");
+          if (/laravel/i.test(comp)) metrics.framework = "Laravel";
+          else if (/symfony/i.test(comp)) metrics.framework = "Symfony";
+        } catch (err) {
+          logger.error(`Error reading composer.json: ${err.message}`);
         }
       }
 

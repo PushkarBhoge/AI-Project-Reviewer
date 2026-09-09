@@ -22,7 +22,7 @@ const RadarChart = ({ data = {} }) => {
     { subject: "Documentation", score: data.documentation?.score || 0, fullMark: 20 },
     { subject: "Architecture", score: data.bestPractices?.score || 0, fullMark: 20 },
     { subject: "Testing", score: data.testing?.score || 0, fullMark: 20 },
-    { subject: "UI/UX", score: data.uiux?.score || 0, fullMark: 20 },
+    { subject: "UI/UX & DX", score: data.uiux?.score || 0, fullMark: 20 },
   ];
 
   // Dynamic colors for light and dark modes

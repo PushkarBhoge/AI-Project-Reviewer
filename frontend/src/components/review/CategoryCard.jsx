@@ -19,7 +19,7 @@ const categoryNameMap = {
   documentation: "Documentation & Readme",
   bestPractices: "Architecture & Best Practices",
   testing: "Testing & Coverage",
-  uiux: "UI/UX & Accessibility",
+  uiux: "UI/UX & Developer Experience (DX)",
 };
 
 const CategoryCard = ({ categoryKey, details }) => {
