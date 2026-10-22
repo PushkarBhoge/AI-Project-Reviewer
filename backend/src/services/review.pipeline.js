@@ -24,7 +24,7 @@ export const activeReviewProgress = new Map();
  */
 export const runReviewPipeline = async (projectId, userId) => {
   let tempRepoPath = null;
-  
+
   // Helper to update progress state
   const updateProgress = (stage, message, percent) => {
     activeReviewProgress.set(projectId, { stage, message, percent });
@@ -46,7 +46,7 @@ export const runReviewPipeline = async (projectId, userId) => {
 
     updateProgress("github_download", "Downloading repository ZIP archive from GitHub...", 15);
     const { owner, repo } = githubService.validateRepoUrl(project.repoUrl);
-    
+
     // Download and extract zip
     tempRepoPath = await githubService.downloadRepository(owner, repo, project.defaultBranch);
 
@@ -168,7 +168,7 @@ export const runReviewPipeline = async (projectId, userId) => {
     return review;
   } catch (error) {
     logger.error(`Review pipeline failed for project ${projectId}: ${error.message}`);
-    
+
     // Mark project as failed
     try {
       await Project.findByIdAndUpdate(projectId, { status: "failed" });

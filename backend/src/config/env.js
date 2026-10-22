@@ -22,7 +22,7 @@ export const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
 
   // GitHub
-  GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+  GITHUB_TOKEN: process.env.GITHUB_TOKEN?.trim() || undefined,
 
   // AI / Gemini
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,

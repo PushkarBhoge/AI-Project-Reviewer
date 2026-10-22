@@ -12,7 +12,7 @@ import axios from "axios";
 export class GitHubService {
   constructor() {
     this.octokit = new Octokit({
-      auth: env.GITHUB_TOKEN || undefined,
+      auth: env.GITHUB_TOKEN ? env.GITHUB_TOKEN.trim() : undefined,
     });
     this.metadataCache = new Map();
   }
@@ -81,8 +81,14 @@ export class GitHubService {
       return result;
     } catch (error) {
       logger.error(`Error fetching GitHub metadata for ${owner}/${repo}: ${error.message}`);
+      if (error.status === 401) {
+        throw new ApiError(401, "GitHub authentication failed: Bad credentials. The GITHUB_TOKEN in backend/.env is invalid or expired.");
+      }
+      if (error.status === 403) {
+        throw new ApiError(403, `GitHub API rate limit exceeded or access forbidden: ${error.message}`);
+      }
       if (error.status === 404) {
-        throw new ApiError(404, `Repository '${owner}/${repo}' not found or is private.`);
+        throw new ApiError(404, `Repository '${owner}/${repo}' not found or is private. If it is private, ensure your GITHUB_TOKEN has 'repo' scope access.`);
       }
       throw new ApiError(500, `Failed to retrieve metadata from GitHub: ${error.message}`);
     }
@@ -159,6 +165,13 @@ export class GitHubService {
       return downloadPath;
     } catch (error) {
       logger.error(`Error downloading repository ${owner}/${repo}: ${error.message}`);
+      const status = error.status || error.response?.status;
+      if (status === 401) {
+        throw new ApiError(401, "GitHub authentication failed: Bad credentials. The GITHUB_TOKEN in backend/.env is invalid or expired.");
+      }
+      if (status === 404) {
+        throw new ApiError(404, `Repository '${owner}/${repo}' not found or is private. If it is private, ensure your GITHUB_TOKEN has 'repo' scope access.`);
+      }
       throw new ApiError(500, `Failed to download repository: ${error.message}`);
     }
   }
@@ -321,6 +334,10 @@ ${codeSnippet}
       return pr.html_url;
     } catch (error) {
       logger.error(`Failed to create GitHub Pull Request: ${error.message}`);
+      const status = error.status || error.response?.status;
+      if (status === 401) {
+        throw new ApiError(401, "GitHub authentication failed: Bad credentials. The GITHUB_TOKEN in backend/.env is invalid or expired.");
+      }
       throw new ApiError(500, `Failed to create GitHub Pull Request: ${error.message}`);
     }
   }
